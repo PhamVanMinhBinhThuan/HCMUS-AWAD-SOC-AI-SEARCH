@@ -1,8 +1,10 @@
 # SOC AI Search: Trustworthy Natural-Language Queries for SOC Triage
 
-**CSC13114 | PA#1 - Project Proposal & Planning**  
+**CSC13114 | PA#1 - Project Proposal & Planning**
+
 **Group Submission:** Phạm Văn Minh (23127228) - Trần Anh Khoa (23127395)
-**Repository / pre-existing prototype:** https://github.com/PhamVanMinhBinhThuan/soc-ai-search
+
+**Repository:** https://github.com/PhamVanMinhBinhThuan/HCMUS-AWAD-SOC-AI-SEARCH
 
 ## 1. Problem and Users
 
@@ -18,39 +20,37 @@
 
 ## 3. Scope for This Semester
 
-**In:** (1) Reuse the existing React/Spring Boot/Elasticsearch search path and roughly 10,000 **synthetic** events; (2) support basic bilingual event search plus `count`, `top_n` and time-series aggregation; (3) build the labeled test corpus, oracle queries and reproducible evaluation runner; (4) add semantic-error review/clarification and regression tests; (5) demonstrate results, corrections, model latency and API expense.
+**In:** (1) Build the end-to-end search path: React console with Query Breakdown, Spring Boot SearchPlan validator and deterministic DSL compiler, Elasticsearch loaded with roughly 10,000 seeded **synthetic** events, and login with fixed analyst/viewer roles; (2) support basic bilingual event search plus `count`, `top_n` and time-series aggregation; (3) build the labeled test corpus, oracle queries and reproducible evaluation runner; (4) add semantic-error review/clarification and regression tests; (5) demonstrate results, corrections, model latency and API expense.
 
-**Out:** Real enterprise SOC data; live SIEM integrations; automated incident blocking/response; fine-tuning; autonomous multi-turn investigations; new dashboards, AI summaries, follow-up suggestions, CSV exports or RBAC features beyond existing baseline maintenance. This is **one reliable LLM search feature**, not a new full SOC platform.
-
-**Disclosure of earlier work:** The public SOC AI Search prototype (search UI, SearchPlan parser/validator/compiler, synthetic data, auth/audit, deployment) was built for **Viettel Digital Talent 2026**. Those components **are not claimed as new course work**. The new semester contribution is the bilingual correctness benchmark and semantic-safety improvements; reuse is conditional on course rules and applicable source-code permissions.
+**Out:** Real enterprise SOC data; live SIEM integrations; automated incident blocking/response; fine-tuning; autonomous multi-turn investigations; dashboards, AI summaries, follow-up suggestions, CSV exports; role administration beyond the two fixed roles. This is **one reliable LLM search feature**, not a full SOC platform.
 
 ## 4. Six Checkpoints: Work, Owner and Date
 
-| Checkpoint | Internal target date* | Verifiable deliverable | Accountable owner |
-|:--|:--|:--|:--|
-| **CP1 - Proposal** | **2026-10-26** | Two-page proposal; baseline inventory and reuse review | Phạm Văn Minh, Trần Anh Khoa |
-| **CP2 - Data & oracle** | **2026-11-09** | 120 labeled questions, deterministic fixture and reference results | Phạm Văn Minh, Trần Anh Khoa |
-| **CP3 - Evaluation** | **2026-11-23** | Repeatable scoring runner; baseline semantic/recall measurements | Phạm Văn Minh, Trần Anh Khoa |
-| **CP4 - Mitigation** | **2026-12-07** | Ambiguity handling, analyst confirmation and regression tests | Phạm Văn Minh, Trần Anh Khoa |
-| **CP5 - Validation** | **2026-12-21** | Held-out evaluation; failure cases, correction time, tokens/cost | Phạm Văn Minh, Trần Anh Khoa |
-| **CP6 - Delivery** | **2027-01-04** | Reproducible demo, final report, comparison and limitations | Phạm Văn Minh, Trần Anh Khoa |
+| Checkpoint | Date | Work - owner |
+|:--|:--|:--|
+| **CP1 - Foundations** | **2026-10-26** | Proposal - Khoa; repository, Docker Compose stack and CI (lint + tests) - Minh; SearchPlan JSON schema and field allowlist - Minh; seeded synthetic event generator and 20 hand-checked questions with reference DSL/expected event IDs - Khoa |
+| **CP2 - Core search path** | **2026-11-09** | SearchPlan validator and deterministic DSL compiler (search, `count`, `top_n`, time-series) with unit tests - Minh; Gemini call producing SearchPlans, plus deterministic mock for CI - Minh; React console: question input, results, Query Breakdown - Khoa |
+| **CP3 - Data & oracle** | **2026-11-23** | 120 labeled questions with reference SearchPlans, dev/held-out split - Khoa; LLM-independent oracle runner (expected IDs/counts) - Minh; Keycloak login and PostgreSQL query log (plan, tokens, latency) - Minh; cross-review of each other's labels/oracle - Minh, Khoa |
+| **CP4 - Evaluation** | **2026-12-07** | CI scoring runner (exact match, recall, disallowed count, latency, tokens) - Khoa; baseline run and failure analysis - Khoa; ambiguity detection and confirmation gate in validator - Minh |
+| **CP5 - Mitigation & validation** | **2026-12-21** | Confirmation/correction UI in Query Breakdown - Khoa; regression tests from baseline failures - Minh; held-out evaluation and failure-case write-up - Khoa; correction-time test with 3-5 users - Minh |
+| **CP6 - Delivery** | **2027-01-04** | Reproducible deployment and demo - Minh; token/cost report against budget - Khoa; final report: baseline vs. mitigated comparison, limitations, what changed and why - Khoa |
 
-*These are concrete **internal planning dates**, not assertions about official course deadlines. Align them with the published CSC13114 calendar before submitting; dependencies are sequential (oracle -> baseline -> mitigation -> held-out evaluation).*
+*Minh = Phạm Văn Minh, Khoa = Trần Anh Khoa. Dependencies are sequential (search path -> oracle -> baseline -> mitigation -> held-out evaluation); labels are written and verified by different members.*
 
 ## 5. Two Project-Ending Risks and Immediate Mitigations
 
-1. **Semantically wrong but valid queries** could hide threats despite successful validation, making the tool unsafe for triage. **Start this week:** hand-check 20 representative questions against manually authored reference DSL; log field/time mismatches; surface Query Breakdown and block automatic execution of ambiguous high-impact requests until confirmed. **Warning signal:** critical-filter exact-match below 90% in pilot tests.
-2. **Untrustworthy evaluation ground truth** could make a polished demo impossible to assess: synthetic events, labels and expected results might disagree. **Start this week:** freeze a seeded dataset, hand-verify 20 reference queries and expected event IDs, keep development/held-out questions separate, and run the oracle independently of LLM output. **Warning signal:** reference queries produce inconsistent counts across repeat runs.
+1. **Semantically wrong but valid queries** could hide threats despite successful validation, making the tool unsafe for triage. **Start this week:** write 20 representative questions with manually authored reference DSL, run them through Gemini with a draft prompt and schema in a standalone script, and log field/time mismatches; the product then surfaces Query Breakdown and blocks automatic execution of ambiguous high-impact requests until confirmed. **Warning signal:** critical-filter exact-match below 90% in pilot tests.
+2. **Untrustworthy evaluation ground truth** could make a polished demo impossible to assess: synthetic events, labels and expected results might disagree. **Start this week:** write the seeded event generator and freeze its output, hand-verify 20 reference queries and expected event IDs, keep development/held-out questions separate, and run the oracle independently of LLM output. **Warning signal:** reference queries produce inconsistent counts across repeat runs.
 
 ## 6. Technology Choices and Budget
 
 | Choice | Why this project needs it |
 |:--|:--|
-| **React + TypeScript** | Reuse the existing console to show SearchPlan interpretation and user corrections. |
+| **React + TypeScript** | Console that shows the SearchPlan interpretation (Query Breakdown) and lets analysts correct it. |
 | **Java 21 / Spring Boot** | Enforce schema/business validation, authorization and deterministic DSL compilation. |
 | **Elasticsearch** | Execute time-bounded log filters and count/top-N/time-series queries; provide oracle event IDs. |
 | **PostgreSQL** | Retain query history, corrections and reproducible audit evidence. |
-| **Keycloak** | Preserve existing analyst/viewer/admin roles and prevent unauthorized log access. |
+| **Keycloak** | Off-the-shelf login and fixed analyst/viewer roles instead of hand-written auth; prevents unauthorized log access. |
 | **Gemini 3.1 Flash-Lite API (proposed)** | Affordable structured JSON generation for the bilingual SearchPlan task; use a deterministic mock during CI. |
 | **Docker Compose + GitHub Actions** | Recreate the stack and automatically rerun evaluation/regression checks. |
 
